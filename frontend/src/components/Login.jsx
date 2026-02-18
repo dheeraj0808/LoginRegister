@@ -1,7 +1,9 @@
-import React from 'react';
-import { Mail, Lock, LogIn, Github, Chrome } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Lock, LogIn, Github, Chrome, Eye, EyeOff } from 'lucide-react';
 
 const Login = ({ onSwitch }) => {
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Login submitted');
@@ -29,8 +31,21 @@ const Login = ({ onSwitch }) => {
             <span style={{ fontSize: '0.75rem', color: 'var(--primary)', cursor: 'pointer', fontWeight: 500 }}>Forgot password?</span>
           </div>
           <div className="input-wrapper">
-            <input type="password" id="password" placeholder="••••••••" required />
+            <input type={showPassword ? "text" : "password"} id="password" placeholder="••••••••" required />
             <Lock size={18} />
+            <div
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                cursor: 'pointer',
+                color: 'var(--text-dim)',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </div>
           </div>
         </div>
 
