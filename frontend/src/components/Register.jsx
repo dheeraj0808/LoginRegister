@@ -4,10 +4,49 @@ import { Mail, Lock, UserPlus, Github, Chrome, User, Eye, EyeOff } from 'lucide-
 const Register = ({ onSwitch }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState({ text: '', type: '' });
 
-    const handleSubmit = (e) => {
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.id]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Register submitted');
+        setMessage({ text: '', type: '' });
+
+        // Password match check
+        if (formData.password !== formData.confirmPassword) {
+            setMessage({ text: 'Passwords do not match!', type: 'error' });
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const res = await fetch('http://localhost:5000/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    password: formData.password
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                setMessage({ text: data.message, type: 'success' });
+                setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+            } else {
+                setMessage({ text: data.message, type: 'error' });
+            }
+        } catch (error) {
+            setMessage({ text: 'Server se connect nahi ho paya!', type: 'error' });
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -17,11 +56,26 @@ const Register = ({ onSwitch }) => {
                 <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem' }}>Join us and start your journey today.</p>
             </div>
 
+            {message.text && (
+                <div style={{
+                    padding: '10px 16px',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    fontSize: '0.85rem',
+                    fontWeight: 500,
+                    background: message.type === 'success' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                    color: message.type === 'success' ? '#22c55e' : '#ef4444',
+                    border: `1px solid ${message.type === 'success' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`
+                }}>
+                    {message.text}
+                </div>
+            )}
+
             <form onSubmit={handleSubmit}>
                 <div className="input-group" style={{ marginBottom: '16px' }}>
                     <label htmlFor="name">Full Name</label>
                     <div className="input-wrapper">
-                        <input type="text" id="name" placeholder="John Doe" required />
+                        <input type="text" id="name" placeholder="John Doe" required value={formData.name} onChange={handleChange} />
                         <User size={18} />
                     </div>
                 </div>
@@ -29,7 +83,7 @@ const Register = ({ onSwitch }) => {
                 <div className="input-group" style={{ marginBottom: '16px' }}>
                     <label htmlFor="email">Email Address</label>
                     <div className="input-wrapper">
-                        <input type="email" id="email" placeholder="name@example.com" required />
+                        <input type="email" id="email" placeholder="name@example.com" required value={formData.email} onChange={handleChange} />
                         <Mail size={18} />
                     </div>
                 </div>
@@ -37,7 +91,7 @@ const Register = ({ onSwitch }) => {
                 <div className="input-group" style={{ marginBottom: '16px' }}>
                     <label htmlFor="password">Password</label>
                     <div className="input-wrapper">
-                        <input type={showPassword ? "text" : "password"} id="password" placeholder="••••••••" required />
+                        <input type={showPassword ? "text" : "password"} id="password" placeholder="••••••••" required value={formData.password} onChange={handleChange} />
                         <Lock size={18} />
                         <div
                             onClick={() => setShowPassword(!showPassword)}
@@ -58,7 +112,7 @@ const Register = ({ onSwitch }) => {
                 <div className="input-group" style={{ marginBottom: '20px' }}>
                     <label htmlFor="confirmPassword">Confirm Password</label>
                     <div className="input-wrapper">
-                        <input type={showConfirmPassword ? "text" : "password"} id="confirmPassword" placeholder="••••••••" required />
+                        <input type={showConfirmPassword ? "text" : "password"} id="confirmPassword" placeholder="••••••••" required value={formData.confirmPassword} onChange={handleChange} />
                         <Lock size={18} />
                         <div
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -76,9 +130,9 @@ const Register = ({ onSwitch }) => {
                     </div>
                 </div>
 
-                <button type="submit" className="btn-primary">
+                <button type="submit" className="btn-primary" disabled={loading}>
                     <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        Get Started <UserPlus size={18} />
+                        {loading ? 'Creating...' : 'Get Started'} <UserPlus size={18} />
                     </span>
                 </button>
             </form>
