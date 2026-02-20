@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Mail, Lock, LogIn, Github, Chrome, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Login = ({ onSwitch }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -27,6 +29,12 @@ const Login = ({ onSwitch }) => {
 
       if (data.success) {
         setMessage({ text: `${data.message} Welcome, ${data.user.name}!`, type: 'success' });
+
+        // Wait 1.5 seconds then redirect to dashboard, passing the user's name
+        setTimeout(() => {
+          navigate('/dashboard', { state: { userName: data.user.name } });
+        }, 1500);
+
       } else {
         setMessage({ text: data.message, type: 'error' });
       }

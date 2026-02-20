@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Lock, UserPlus, Github, Chrome, User, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Register = ({ onSwitch }) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -7,6 +8,7 @@ const Register = ({ onSwitch }) => {
     const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ text: '', type: '' });
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -37,8 +39,13 @@ const Register = ({ onSwitch }) => {
             const data = await res.json();
 
             if (data.success) {
-                setMessage({ text: data.message, type: 'success' });
+                setMessage({ text: `${data.message} Redirecting to login...`, type: 'success' });
                 setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+
+                // Redirect user to login after successful register
+                setTimeout(() => {
+                    navigate('/login');
+                }, 1500);
             } else {
                 setMessage({ text: data.message, type: 'error' });
             }
