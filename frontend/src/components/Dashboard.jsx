@@ -1,54 +1,151 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Home } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const Dashboard = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
+    const [profile, setProfile] = useState({
+        username: '',
+        email: '',
+        first_name: '',
+        last_name: '',
+        phone: '',
+        bio: ''
+    });
+    const [isEditing, setIsEditing] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-    // Login page se jo naam bheja gaya hai, wo yahan access hoga
-    const userName = location.state?.userName || 'User';
+    useEffect(() => {
+        fetchProfile();
+    }, []);
 
-    const handleLogout = () => {
-        navigate('/login');
+    const fetchProfile = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get('http://localhost:5000/api/profile', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setProfile(response.data.profile);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+            setLoading(false);
+        }
     };
 
+    const handleInputChange = (e) => {
+        setProfile({
+            ...profile,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleUpdateProfile = async (e) => {
+        e.preventDefault();
+        try {
+            const token = localStorage.getItem('token');
+            await axios.put('http://localhost:5000/api/profile', profile, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setIsEditing(false);
+            alert('Profile updated successfully!');
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            alert('Error updating profile');
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+            try {
+                const token = localStorage.getItem('token');
+                await axios.delete('http://localhost:5000/api/profile', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            } catch (error) {
+                console.error('Error deleting account:', error);
+                alert('Error deleting account');
+            }
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+    };
+
+    if (loading) return <div>Loading...</div>;
+
     return (
-        <div className="glass login-card" style={{ padding: '40px', width: '100%', maxWidth: '500px', textAlign: 'center' }}>
-            <div style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '50%',
-                background: 'var(--primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 24px',
-                boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)'
-            }}>
-                <Home size={32} color="white" />
+        <div className="dashboard-container">
+            <h2>Dashboard</h2>
+
+            <div className="profile-section">
+                <h3>Profile Information</h3>
+
+                {!isEditing ? (
+                    <div className="profile-display">
+                        <p><strong>Username:</strong> {profile.username}</p>
+                        <p><strong>Email:</strong> {profile.email}</p>
+                        <p><strong>First Name:</strong> {profile.first_name || 'Not set'}</p>
+                        <p><strong>Last Name:</strong> {profile.last_name || 'Not set'}</p>
+                        <p><strong>Phone:</strong> {profile.phone || 'Not set'}</p>
+                        <p><strong>Bio:</strong> {profile.bio || 'Not set'}</p>
+
+                        <button onClick={() => setIsEditing(true)}>Edit Profile</button>
+                    </div>
+                ) : (
+                    <form onSubmit={handleUpdateProfile} className="profile-form">
+                        <div>
+                            <label>First Name:</label>
+                            <input
+                                type="text"
+                                name="first_name"
+                                value={profile.first_name}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+
+                        <div>
+                            <label>Last Name:</label>
+                            <input
+                                type="text"
+                                name="last_name"
+                                value={profile.last_name}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+
+                        <div>
+                            <label>Phone:</label>
+                            <input
+                                type="text"
+                                name="phone"
+                                value={profile.phone}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+
+                        <div>
+                            <label>Bio:</label>
+                            <textarea
+                                name="bio"
+                                value={profile.bio}
+                                onChange={handleInputChange}
+                                rows="4"
+                            />
+                        </div>
+
+                        <button type="submit">Update Profile</button>
+                        <button type="button" onClick={() => setIsEditing(false)}>Cancel</button>
+                    </form>
+                )}
             </div>
 
-            <h1 style={{
-                fontSize: '2.5rem',
-                fontWeight: '700',
-                marginBottom: '12px',
-                background: 'linear-gradient(135deg, #fff, #a5b4fc)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-            }}>
-                Login Successfully! 🎉
-            </h1>
-
-            <p style={{ color: 'var(--text-dim)', fontSize: '1.1rem', marginBottom: '32px' }}>
-                Welcome back, <span style={{ color: 'white', fontWeight: '600' }}>{userName}</span>. You are now securely logged in.
-            </p>
-
-            <button onClick={handleLogout} className="btn-primary" style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fee2e2' }}>
-                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                    <LogOut size={18} /> Logout
-                </span>
-            </button>
+            <div className="actions">
+                <button onClick={handleLogout}>Logout</button>
+                <button onClick={handleDeleteAccount} className="delete-btn">Delete Account</button>
+            </div>
         </div>
     );
 };
