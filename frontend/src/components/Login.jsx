@@ -1,132 +1,107 @@
-import React, { useState } from 'react';
-import { Mail, Lock, LogIn, Github, Chrome, Eye, EyeOff } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const Login = ({ onSwitch }) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ email: '', password: '' });
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ text: '', type: '' });
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setMessage({ text: '', type: '' });
+    setError("");
     setLoading(true);
-
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+      const res = await fetch("http://localhost:5000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
-
       const data = await res.json();
-
-      if (data.success) {
-        setMessage({ text: `${data.message} Welcome, ${data.user.name}!`, type: 'success' });
-
-        // Wait 1.5 seconds then redirect to dashboard, passing the user's name
-        setTimeout(() => {
-          navigate('/dashboard', { state: { userName: data.user.name } });
-        }, 1500);
-
-      } else {
-        setMessage({ text: data.message, type: 'error' });
-      }
-    } catch (error) {
-      setMessage({ text: 'Server se connect nahi ho paya!', type: 'error' });
+      if (!res.ok) throw new Error(data.message);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="glass login-card" style={{ padding: '40px', width: '100%', maxWidth: '400px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '8px' }}>Welcome Back</h1>
-        <p style={{ color: 'var(--text-dim)', fontSize: '0.9rem' }}>Please enter your details to sign in.</p>
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <h2 style={styles.title}>🔐 Login</h2>
+        <p style={styles.subtitle}>Kisi bhi email se login karein</p>
+        {error && <p style={styles.error}>{error}</p>}
+        <form onSubmit={handleLogin} style={styles.form}>
+          <input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={styles.input}
+          />
+          <input
+            type="password"
+            placeholder="Password (kuch bhi)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={styles.input}
+          />
+          <button type="submit" disabled={loading} style={styles.button}>
+            {loading ? "Logging in..." : "Login →"}
+          </button>
+        </form>
       </div>
-
-      {message.text && (
-        <div style={{
-          padding: '10px 16px',
-          borderRadius: '8px',
-          marginBottom: '16px',
-          fontSize: '0.85rem',
-          fontWeight: 500,
-          background: message.type === 'success' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-          color: message.type === 'success' ? '#22c55e' : '#ef4444',
-          border: `1px solid ${message.type === 'success' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`
-        }}>
-          {message.text}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        <div className="input-group">
-          <label htmlFor="email">Email Address</label>
-          <div className="input-wrapper">
-            <input type="email" id="email" placeholder="name@example.com" required value={formData.email} onChange={handleChange} />
-            <Mail size={18} />
-          </div>
-        </div>
-
-        <div className="input-group">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <label htmlFor="password" style={{ marginBottom: 0 }}>Password</label>
-            <span style={{ fontSize: '0.75rem', color: 'var(--primary)', cursor: 'pointer', fontWeight: 500 }}>Forgot password?</span>
-          </div>
-          <div className="input-wrapper">
-            <input type={showPassword ? "text" : "password"} id="password" placeholder="••••••••" required value={formData.password} onChange={handleChange} />
-            <Lock size={18} />
-            <div
-              onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: 'absolute',
-                right: '12px',
-                cursor: 'pointer',
-                color: 'var(--text-dim)',
-                display: 'flex',
-                alignItems: 'center'
-              }}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </div>
-          </div>
-        </div>
-
-        <button type="submit" className="btn-primary" disabled={loading}>
-          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            {loading ? 'Signing In...' : 'Sign In'} <LogIn size={18} />
-          </span>
-        </button>
-      </form>
-
-      <div style={{ margin: '24px 0', display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <div style={{ flex: 1, height: '1px', background: 'var(--border-white)' }}></div>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '1px' }}>Or continue with</span>
-        <div style={{ flex: 1, height: '1px', background: 'var(--border-white)' }}></div>
-      </div>
-
-      <div style={{ display: 'flex', gap: '12px' }}>
-        <button className="glass" style={{ flex: 1, padding: '12px', display: 'flex', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'var(--transition)' }}>
-          <Github size={20} />
-        </button>
-        <button className="glass" style={{ flex: 1, padding: '12px', display: 'flex', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'var(--transition)' }}>
-          <Chrome size={20} />
-        </button>
-      </div>
-
-      <p className="link-text">
-        Don't have an account? <span onClick={onSwitch}>Sign up for free</span>
-      </p>
     </div>
   );
+};
+
+const styles = {
+  container: {
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    fontFamily: "'Segoe UI', sans-serif",
+  },
+  card: {
+    background: "#fff",
+    borderRadius: "16px",
+    padding: "40px",
+    width: "380px",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+    textAlign: "center",
+  },
+  title: { margin: "0 0 4px", fontSize: "28px", color: "#333" },
+  subtitle: { margin: "0 0 24px", color: "#888", fontSize: "14px" },
+  error: { color: "#e74c3c", background: "#fde8e8", padding: "8px", borderRadius: "8px", fontSize: "13px" },
+  form: { display: "flex", flexDirection: "column", gap: "14px" },
+  input: {
+    padding: "12px 16px",
+    borderRadius: "10px",
+    border: "1px solid #ddd",
+    fontSize: "15px",
+    outline: "none",
+    transition: "border 0.2s",
+  },
+  button: {
+    padding: "12px",
+    borderRadius: "10px",
+    border: "none",
+    background: "linear-gradient(135deg, #667eea, #764ba2)",
+    color: "#fff",
+    fontSize: "16px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    marginTop: "6px",
+  },
 };
 
 export default Login;
