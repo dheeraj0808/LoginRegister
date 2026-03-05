@@ -1,153 +1,159 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-    const [profile, setProfile] = useState({
-        username: '',
-        email: '',
-        first_name: '',
-        last_name: '',
-        phone: '',
-        bio: ''
-    });
-    const [isEditing, setIsEditing] = useState(false);
-    const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchProfile();
-    }, []);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/");
+      return;
+    }
+    fetch("http://localhost:5000/api/profile", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then((data) => setProfile(data))
+      .catch(() => {
+        localStorage.clear();
+        navigate("/");
+      })
+      .finally(() => setLoading(false));
+  }, [navigate]);
 
-    const fetchProfile = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:5000/api/profile', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setProfile(response.data.profile);
-            setLoading(false);
-        } catch (error) {
-            console.error('Error fetching profile:', error);
-            setLoading(false);
-        }
-    };
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
 
-    const handleInputChange = (e) => {
-        setProfile({
-            ...profile,
-            [e.target.name]: e.target.value
-        });
-    };
-
-    const handleUpdateProfile = async (e) => {
-        e.preventDefault();
-        try {
-            const token = localStorage.getItem('token');
-            await axios.put('http://localhost:5000/api/profile', profile, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setIsEditing(false);
-            alert('Profile updated successfully!');
-        } catch (error) {
-            console.error('Error updating profile:', error);
-            alert('Error updating profile');
-        }
-    };
-
-    const handleDeleteAccount = async () => {
-        if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            try {
-                const token = localStorage.getItem('token');
-                await axios.delete('http://localhost:5000/api/profile', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                localStorage.removeItem('token');
-                window.location.href = '/login';
-            } catch (error) {
-                console.error('Error deleting account:', error);
-                alert('Error deleting account');
-            }
-        }
-    };
-
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-    };
-
-    if (loading) return <div>Loading...</div>;
-
+  if (loading) {
     return (
-        <div className="dashboard-container">
-            <h2>Dashboard</h2>
-
-            <div className="profile-section">
-                <h3>Profile Information</h3>
-
-                {!isEditing ? (
-                    <div className="profile-display">
-                        <p><strong>Username:</strong> {profile.username}</p>
-                        <p><strong>Email:</strong> {profile.email}</p>
-                        <p><strong>First Name:</strong> {profile.first_name || 'Not set'}</p>
-                        <p><strong>Last Name:</strong> {profile.last_name || 'Not set'}</p>
-                        <p><strong>Phone:</strong> {profile.phone || 'Not set'}</p>
-                        <p><strong>Bio:</strong> {profile.bio || 'Not set'}</p>
-
-                        <button onClick={() => setIsEditing(true)}>Edit Profile</button>
-                    </div>
-                ) : (
-                    <form onSubmit={handleUpdateProfile} className="profile-form">
-                        <div>
-                            <label>First Name:</label>
-                            <input
-                                type="text"
-                                name="first_name"
-                                value={profile.first_name}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-
-                        <div>
-                            <label>Last Name:</label>
-                            <input
-                                type="text"
-                                name="last_name"
-                                value={profile.last_name}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-
-                        <div>
-                            <label>Phone:</label>
-                            <input
-                                type="text"
-                                name="phone"
-                                value={profile.phone}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-
-                        <div>
-                            <label>Bio:</label>
-                            <textarea
-                                name="bio"
-                                value={profile.bio}
-                                onChange={handleInputChange}
-                                rows="4"
-                            />
-                        </div>
-
-                        <button type="submit">Update Profile</button>
-                        <button type="button" onClick={() => setIsEditing(false)}>Cancel</button>
-                    </form>
-                )}
-            </div>
-
-            <div className="actions">
-                <button onClick={handleLogout}>Logout</button>
-                <button onClick={handleDeleteAccount} className="delete-btn">Delete Account</button>
-            </div>
-        </div>
+      <div style={styles.container}>
+        <p style={{ color: "#fff", fontSize: "20px" }}>Loading...</p>
+      </div>
     );
+  }
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <button onClick={handleLogout} style={styles.logoutBtn}>
+          Logout
+        </button>
+        <img src={profile.avatar} alt="avatar" style={styles.avatar} />
+        <h1 style={styles.name}>{profile.name}</h1>
+        <p style={styles.email}>{profile.email}</p>
+        <p style={styles.bio}>"{profile.bio}"</p>
+
+        <div style={styles.statsRow}>
+          <div style={styles.statBox}>
+            <span style={styles.statNum}>12</span>
+            <span style={styles.statLabel}>Posts</span>
+          </div>
+          <div style={styles.statBox}>
+            <span style={styles.statNum}>340</span>
+            <span style={styles.statLabel}>Followers</span>
+          </div>
+          <div style={styles.statBox}>
+            <span style={styles.statNum}>180</span>
+            <span style={styles.statLabel}>Following</span>
+          </div>
+        </div>
+
+        <div style={styles.infoSection}>
+          <h3 style={styles.sectionTitle}>📋 Profile Info</h3>
+          <div style={styles.infoRow}>
+            <span style={styles.infoLabel}>📧 Email</span>
+            <span style={styles.infoValue}>{profile.email}</span>
+          </div>
+          <div style={styles.infoRow}>
+            <span style={styles.infoLabel}>📅 Joined</span>
+            <span style={styles.infoValue}>
+              {new Date(profile.joinedAt).toLocaleDateString("en-IN", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
+          </div>
+          <div style={styles.infoRow}>
+            <span style={styles.infoLabel}>🟢 Status</span>
+            <span style={{ ...styles.infoValue, color: "#27ae60", fontWeight: "bold" }}>Active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const styles = {
+  container: {
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
+    fontFamily: "'Segoe UI', sans-serif",
+  },
+  card: {
+    background: "#fff",
+    borderRadius: "20px",
+    padding: "40px 36px",
+    width: "420px",
+    boxShadow: "0 24px 80px rgba(0,0,0,0.35)",
+    textAlign: "center",
+    position: "relative",
+  },
+  logoutBtn: {
+    position: "absolute",
+    top: "16px",
+    right: "16px",
+    background: "#e74c3c",
+    color: "#fff",
+    border: "none",
+    padding: "8px 16px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "13px",
+  },
+  avatar: {
+    width: "100px",
+    height: "100px",
+    borderRadius: "50%",
+    border: "4px solid #764ba2",
+    marginBottom: "12px",
+  },
+  name: { margin: "0", fontSize: "26px", color: "#222" },
+  email: { margin: "4px 0 8px", color: "#888", fontSize: "14px" },
+  bio: { color: "#555", fontStyle: "italic", fontSize: "14px", marginBottom: "20px" },
+  statsRow: {
+    display: "flex",
+    justifyContent: "space-around",
+    background: "linear-gradient(135deg, #667eea, #764ba2)",
+    borderRadius: "14px",
+    padding: "16px 0",
+    marginBottom: "24px",
+  },
+  statBox: { display: "flex", flexDirection: "column", alignItems: "center" },
+  statNum: { fontSize: "22px", fontWeight: "bold", color: "#fff" },
+  statLabel: { fontSize: "12px", color: "rgba(255,255,255,0.8)" },
+  infoSection: { textAlign: "left" },
+  sectionTitle: { fontSize: "16px", color: "#333", marginBottom: "12px" },
+  infoRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    padding: "10px 0",
+    borderBottom: "1px solid #eee",
+  },
+  infoLabel: { color: "#666", fontSize: "14px" },
+  infoValue: { color: "#333", fontSize: "14px", fontWeight: "500" },
 };
 
 export default Dashboard;
