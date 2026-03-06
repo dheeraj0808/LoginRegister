@@ -1,8 +1,11 @@
+require('dotenv').config();
+
 const app = require('./src/app');
 const sequelize = require('./src/config/db');
-require('dotenv').config();
-sequelize.authenticate();
 
+require('./src/models/user.model');
+
+sequelize.sync();
 
 const PORT = process.env.PORT || 3000;
 
