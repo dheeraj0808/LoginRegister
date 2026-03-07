@@ -66,10 +66,35 @@ const token = jwt.sign(
 }
 
 const getProfile = async (req, res) => {
-  
-}
+  try {
+
+    const userId = req.userId;
+
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
+
+    res.json({
+      message: "Profile fetched successfully",
+      user
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+
+  }
+};
 
 module.exports = {
   registerUser,
-  loginUser
+  loginUser,
+  getProfile 
 }
