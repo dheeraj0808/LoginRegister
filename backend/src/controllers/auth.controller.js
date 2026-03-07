@@ -34,17 +34,26 @@ const registerUser = async (req, res) => {
 
 
 const loginUser = async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({
-    where: {
-      email,
-      password
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({
+      where: {
+        email,
+        password
+      }
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password" });
     }
-  });
-  res.json({
-    message: "User logged in successfully",
-    user
-  });
+
+    res.json({
+      message: "User logged in successfully",
+      user
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
 }
 
 module.exports = {

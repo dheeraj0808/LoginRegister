@@ -1,33 +1,49 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../services/api";
+import { registerUser } from "../services/api";
 
-const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const Signup = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    
     setLoading(true);
-
+    
     try {
-      const data = await loginUser({ email, password });
-
-      // Store user data (no token in current backend)
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Show success message
-      alert("Login successful!");
-
-      // Navigate to dashboard or home
-      navigate("/dashboard");
-
+      const data = await registerUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      });
+      
+      alert("Registration successful!");
+      navigate("/login");
+      
     } catch (err) {
-      setError(err.message || "Login failed");
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -36,32 +52,59 @@ const Login = () => {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>🔐 Login</h2>
-        <p style={styles.subtitle}>Enter your credentials to login</p>
+        <h2 style={styles.title}>🚀 Create Account</h2>
+        <p style={styles.subtitle}>Join us today!</p>
+        
         {error && <p style={styles.error}>{error}</p>}
-        <form onSubmit={handleLogin} style={styles.form}>
+        
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            style={styles.input}
+          />
+          
           <input
             type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            name="email"
+            placeholder="Email Address"
+            value={formData.email}
+            onChange={handleChange}
             required
             style={styles.input}
           />
+          
           <input
             type="password"
+            name="password"
             placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleChange}
             required
             style={styles.input}
           />
+          
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="Confirm Password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+            style={styles.input}
+          />
+          
           <button type="submit" disabled={loading} style={styles.button}>
-            {loading ? "Logging in..." : "Login →"}
+            {loading ? "Creating Account..." : "Sign Up →"}
           </button>
         </form>
+        
         <p style={styles.linkText}>
-          Don't have an account? <a href="/signup" style={styles.link}>Sign up</a>
+          Already have an account? <a href="/login" style={styles.link}>Login</a>
         </p>
       </div>
     </div>
@@ -120,4 +163,4 @@ const styles = {
   },
 };
 
-export default Login;
+export default Signup;
