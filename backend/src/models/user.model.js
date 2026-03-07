@@ -16,11 +16,13 @@ const User = sequelize.define("User", {
 
   email: {
     type: DataTypes.STRING,
-    unique: true
+    unique: true,
+    allowNull: false
   },
 
   password: {
-    type: DataTypes.STRING
+    type: DataTypes.STRING,
+    allowNull: false
   }
 
 });

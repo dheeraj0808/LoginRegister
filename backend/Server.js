@@ -1,14 +1,18 @@
-require('dotenv').config();
+require("dotenv").config();
 
-const app = require('./src/app');
-const sequelize = require('./src/config/db');
+const app = require("./src/app");
+const sequelize = require("./src/config/db");
 
-require('./src/models/user.model');
+/* MODEL LOAD */
+require("./src/models/user.model");
 
-sequelize.sync();
+const PORT = process.env.PORT || 3002;
 
-const PORT = process.env.PORT || 3000;
+/* DB SYNC */
+sequelize.sync({ force: true }).then(() => {
+  console.log("Database synced");
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 });
