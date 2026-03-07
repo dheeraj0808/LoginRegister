@@ -15,6 +15,22 @@ const registerUser = async (req, res) => {
 
 }
 
+
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({
+    where: {
+      email,
+      password
+    }
+  });
+  res.json({
+    message: "User logged in successfully",
+    user
+  });
+}
+
 module.exports = {
-  registerUser
+  registerUser,
+  loginUser
 }
