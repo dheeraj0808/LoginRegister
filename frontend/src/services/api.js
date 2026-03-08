@@ -29,4 +29,18 @@ export const loginUser = async (credentials) => {
   }
 };
 
+// Get user profile (requires token)
+export const getProfile = async (token) => {
+  try {
+    const response = await api.get('/profile', {
+      headers: {
+        Authorization: token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 export default api;
