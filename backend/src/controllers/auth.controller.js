@@ -93,8 +93,44 @@ const getProfile = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+
+    const userId = req.userId;
+
+    const { name, email, password } = req.body;
+
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (password) user.password = password;
+
+    await user.save();
+
+    res.json({
+      message: "Profile updated successfully",
+      user
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: "Server error"
+    });
+
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
-  getProfile 
+  getProfile,
+  updateProfile
 }
