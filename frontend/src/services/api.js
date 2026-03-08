@@ -43,4 +43,18 @@ export const getProfile = async (token) => {
   }
 };
 
+// Update user profile (requires token)
+export const updateProfile = async (token, profileData) => {
+  try {
+    const response = await api.patch('/profile', profileData, {
+      headers: {
+        Authorization: token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 export default api;
