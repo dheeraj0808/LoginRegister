@@ -2,17 +2,20 @@
 A full-stack web application featuring user registration, login authentication, and a secure dashboard built with React (Vite) on the frontend and Node.js/Express with MySQL on the backend.
 
 ## 🌟 Key Features
-* 🛡️ **Secure Authentication** using bcrypt password hashing.
+* 🛡️ **Secure Authentication** using bcrypt password hashing and JWT tokens.
 * 🚦 **Routing & Protected Views** using `react-router-dom`.
 * 💎 **Glassmorphism UI** with a dynamic, aesthetic design and smooth animations.
 * 📦 **MVC Architecture** on the server for cleaner code.
 * 🗄️ **Automatic Database Setup**: Creates the `users` table automatically on initialization.
+* 🔄 **RESTful API** with proper error handling and validation.
+* 🍪 **Cookie-based Session Management** for enhanced security.
 
 ## 🛠️ Technology Stack
-* **Frontend:** React, Vite, React Router DOM, Lucide-React, Vanilla CSS (Glassmorphism).
-* **Backend:** Node.js, Express.js.
-* **Database:** MySQL2 (Connection Pool).
-* **Other Tools:** bcrypt (Hashing), dotenv (Environment variables), CORS.
+* **Frontend:** React 18, Vite, React Router DOM, Axios, Vanilla CSS (Glassmorphism)
+* **Backend:** Node.js, Express.js, Sequelize ORM
+* **Database:** MySQL2 with Connection Pool
+* **Authentication:** bcrypt (Password Hashing), JWT (JSON Web Tokens)
+* **Other Tools:** dotenv (Environment variables), CORS, Cookie-Parser, Nodemon
 
 ---
 
@@ -47,6 +50,7 @@ DB_USER=root
 DB_PASSWORD=your_mysql_password_here
 DB_NAME=loginRegister
 DB_PORT=3306
+JWT_SECRET=your_jwt_secret_key_here
 ```
 Start the backend server (starts on `http://localhost:5000`):
 ```bash
@@ -92,13 +96,72 @@ LoginRegister/
 
 ## 🌐 API Endpoints
 
-| Method | Endpoint | Description | Request Body |
-|--------|---------|-------------|--------------|
-| `POST` | `/api/auth/register` | Register a new user | `{ name, email, password }` |
-| `POST` | `/api/auth/login` | Login an existing user | `{ email, password }` |
+| Method | Endpoint | Description | Request Body | Response |
+|--------|---------|-------------|--------------|----------|
+| `POST` | `/api/auth/register` | Register a new user | `{ name, email, password }` | `{ success: true, message: "User created successfully" }` |
+| `POST` | `/api/auth/login` | Login an existing user | `{ email, password }` | `{ success: true, token: "jwt_token", user: { id, name, email } }` |
+| `GET` | `/api/auth/dashboard` | Access protected dashboard (requires JWT) | - | `{ success: true, user: { id, name, email } }` |
+| `POST` | `/api/auth/logout` | Logout user (clears cookie) | - | `{ success: true, message: "Logged out successfully" }` |
 
 ---
 
 ## 🔒 Security
-- Passwords are encrypted before insertion into the database to ensure maximum security against breaches.
-- Cross-Origin Resource Sharing (CORS) is enabled to only allow secure frontend requests to backend paths.
+- **Password Hashing**: Passwords are encrypted using bcrypt before database storage
+- **JWT Authentication**: Secure token-based authentication for protected routes
+- **CORS Protection**: Cross-Origin Resource Sharing enabled only for secure frontend requests
+- **Input Validation**: Server-side validation for all user inputs
+- **Environment Variables**: Sensitive data stored in environment variables
+
+---
+
+## 🎨 UI/UX Features
+- **Glassmorphism Design**: Modern frosted glass effect with backdrop filters
+- **Responsive Layout**: Fully responsive design for all screen sizes
+- **Smooth Animations**: CSS transitions and hover effects for enhanced user experience
+- **Form Validation**: Real-time client-side validation with user-friendly error messages
+- **Loading States**: Visual feedback during API calls and form submissions
+
+---
+
+## 📝 Scripts & Commands
+
+### Backend Scripts
+```bash
+npm start      # Start production server
+npm run dev    # Start development server with nodemon
+```
+
+### Frontend Scripts
+```bash
+npm run dev      # Start development server
+npm run build    # Build for production
+npm run preview  # Preview production build
+```
+
+---
+
+## 🤝 Contributing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👤 Author
+**Dheeraj**
+- GitHub: [@dheeraj0808](https://github.com/dheeraj0808)
+
+---
+
+## 🙏 Acknowledgments
+- React Router DOM for seamless routing
+- Express.js for robust backend framework
+- MySQL for reliable database management
+- Vite for fast development experience
