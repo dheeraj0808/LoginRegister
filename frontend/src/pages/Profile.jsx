@@ -1,17 +1,21 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import api from "../services/api";
 
-function Register() {
+function Profile() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
+  const { user, updateUser } = useAuth();
+  const [form, setForm] = useState({ name: "", email: "" });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setForm({ name: user.name, email: user.email });
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -20,14 +24,16 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
-      await api.post("/register", form);
-      alert("✅ Registration successful! Please login.");
-      navigate("/login");
+      const { data } = await api.patch("/profile", form);
+      updateUser(data.user);
+      setSuccess("✅ Profile updated successfully!");
+      setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+      setError(err.response?.data?.message || "Update failed");
     } finally {
       setLoading(false);
     }
@@ -35,8 +41,9 @@ function Register() {
 
   return (
     <div className="form-container">
-      <h2>Register</h2>
+      <h2>Edit Profile</h2>
       {error && <p className="error">{error}</p>}
+      {success && <p className="success">{success}</p>}
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -54,33 +61,15 @@ function Register() {
           onChange={handleChange}
           required
         />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          required
-          minLength={6}
-        />
-        <input
-          type="password"
-          name="confirmPassword"
-          placeholder="Confirm Password"
-          value={form.confirmPassword}
-          onChange={handleChange}
-          required
-          minLength={6}
-        />
         <button type="submit" disabled={loading}>
-          {loading ? "Registering..." : "Register"}
+          {loading ? "Updating..." : "Update Profile"}
         </button>
       </form>
       <p>
-        Already have an account? <Link to="/login">Login here</Link>
+        <Link to="/dashboard">← Back to Dashboard</Link>
       </p>
     </div>
   );
 }
 
-export default Register;
+export default Profile;
