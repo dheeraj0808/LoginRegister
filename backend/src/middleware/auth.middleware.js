@@ -1,32 +1,24 @@
 const jwt = require("jsonwebtoken");
 
-const verifyToken = (req, res, next) => {
-
-  const authHeader = req.headers.authorization;
-  console.log(authHeader);
-  if (!authHeader) {
-    return res.status(401).json({
-      message: "Token required"
-    });
-  }
-
-  const token = authHeader.split(" ")[1];
-
+const authenticateToken = (req, res, next) => {
   try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1]; // "Bearer token" se token nikalo
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
+    if (!token) {
+      return res.status(401).json({ message: "No token provided" });
+    }
 
-    req.userId = decoded.id;
-
-    next();
-
-  } catch (error) {
-    console.error("Token verification failed:", error.message);
-    return res.status(401).json({
-      message: "Invalid token"
+    jwt.verify(token, process.env.JWT_SECRET || "secretkey", (err, user) => {
+      if (err) {
+        return res.status(403).json({ message: "Invalid or expired token" });
+      }
+      req.userId = user.id; // Token se user ID set karo
+      next();
     });
-
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-module.exports = verifyToken;
+module.exports = authenticateToken;

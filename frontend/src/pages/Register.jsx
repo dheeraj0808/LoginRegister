@@ -4,7 +4,7 @@ import api from "../services/api";
 
 function Register() {
     const navigate = useNavigate();
-    const [form, setForm] = useState({ name: "", email: "", password: "" });
+    const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -53,6 +53,15 @@ function Register() {
                     name="password"
                     placeholder="Password"
                     value={form.password}
+                    onChange={handleChange}
+                    required
+                    minLength={6}
+                />
+                <input
+                    type="password"
+                    name="confirmPassword"
+                    placeholder="Confirm Password"
+                    value={form.confirmPassword}
                     onChange={handleChange}
                     required
                     minLength={6}

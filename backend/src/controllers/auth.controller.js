@@ -69,13 +69,11 @@ const loginUser = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
-}
+};
 
 const getProfile = async (req, res) => {
   try {
-    console.log("req", req.user);
-    console.log(req.userId);
-    const userId = 1;
+    const userId = req.userId; // ✅ Middleware se actual user ID
 
     const user = await User.findByPk(userId);
 
@@ -87,23 +85,24 @@ const getProfile = async (req, res) => {
 
     res.json({
       message: "Profile fetched successfully",
-      user
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      }
     });
 
   } catch (error) {
-
     res.status(500).json({
       message: "Server error",
       error: error.message
     });
-
   }
 };
 
 const updateProfile = async (req, res) => {
   try {
-
-    const userId = req.userId;
+    const userId = req.userId; // ✅ Middleware se actual user ID
 
     const { name, email, password } = req.body;
 
@@ -139,12 +138,10 @@ const updateProfile = async (req, res) => {
     });
 
   } catch (error) {
-
     res.status(500).json({
       message: "Server error",
       error: error.message
     });
-
   }
 };
 
