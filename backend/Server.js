@@ -9,7 +9,7 @@ require("./src/models/user.model");
 const PORT = process.env.PORT || 3002;
 
 /* DB SYNC */
-sequelize.sync({ force: true }).then(() => {
+sequelize.sync({ alter: true }).then(() => {
   console.log("Database synced");
 
   app.listen(PORT, () => {

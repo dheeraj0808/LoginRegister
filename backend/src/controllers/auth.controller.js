@@ -49,16 +49,22 @@ const loginUser = async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-const token = jwt.sign(
+    console.log(user)
+    const token = jwt.sign(
       { id: user.id },
-      "secretkey",
+      process.env.JWT_SECRET || "secretkey",
       { expiresIn: "1d" }
     );
+    console.log(token)
 
     res.json({
       message: "User logged in successfully",
       token,
-      user
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      }
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -67,8 +73,9 @@ const token = jwt.sign(
 
 const getProfile = async (req, res) => {
   try {
-
-    const userId = req.userId;
+    console.log("req", req.user);
+    console.log(req.userId);
+    const userId = 1;
 
     const user = await User.findByPk(userId);
 
@@ -108,21 +115,34 @@ const updateProfile = async (req, res) => {
       });
     }
 
-    if (name) user.name = name;
-    if (email) user.email = email;
-    if (password) user.password = password;
+    if (name) {
+      user.name = name;
+    }
+
+    if (email) {
+      user.email = email;
+    }
+
+    if (password) {
+      user.password = password;
+    }
 
     await user.save();
 
     res.json({
       message: "Profile updated successfully",
-      user
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      }
     });
 
   } catch (error) {
 
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
+      error: error.message
     });
 
   }
