@@ -1,60 +1,32 @@
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:3001/api/auth';
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: "/api",
 });
 
-// Register user
-export const registerUser = async (userData) => {
-  try {
-    const response = await api.post('/register', userData);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
-};
+// Automatically attach token to every request
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-// Login user
-export const loginUser = async (credentials) => {
-  try {
-    const response = await api.post('/login', credentials);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
+// If 401 → token expired → logout
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
   }
-};
-
-// Get user profile (requires token)
-export const getProfile = async (token) => {
-  try {
-    const response = await api.get('/profile', {
-      headers: {
-        Authorization: token,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
-};
-
-// Update user profile (requires token)
-export const updateProfile = async (token, profileData) => {
-  try {
-    const response = await api.patch('/profile', profileData, {
-      headers: {
-        Authorization: token,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
-};
+);
 
 export default api;
